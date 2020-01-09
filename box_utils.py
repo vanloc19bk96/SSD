@@ -22,6 +22,14 @@ def compute_iou(gt_boxes, prior_boxes):
 
     return iou
 
+def convert_center_to_corner(boxes):
+    xmin = tf.cast(boxes[..., 0], dtype=tf.float64) - boxes[..., 2] / 2
+    xmax = tf.cast(boxes[..., 0], dtype=tf.float64) + boxes[..., 2] / 2
+    ymin = tf.cast(boxes[..., 1], dtype=tf.float64) - boxes[..., 3] / 2
+    ymax  = tf.cast(boxes[..., 1], dtype=tf.float64) + boxes[..., 3] / 2
+    corner_boxes = tf.transpose([xmin, ymin, xmax, ymax])
+    return corner_boxes
+
 # import cv2
 #
 # zeros = np.zeros((300, 300))
