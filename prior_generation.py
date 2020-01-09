@@ -4,11 +4,11 @@ import itertools
 fm_sizes = [38, 19, 10, 5, 3, 1]
 scales = [0.1, 0.2, 0.375, 0.55, 0.725, 0.9]
 aspect_ratios = [[1, 2, 0.5], [1, 2, 3, 0.5, 0.333],
-				 [1, 2, 3, 0.5, 0.333], [1, 2, 0.5],
+				 [1, 2, 3, 0.5, 0.333], [1, 2, 3, 0.5, 0.333],
 				 [1, 2, 0.5], [1, 2, 0.5]]
 offset = 0.5
 
-def generate_prior(fm_id):
+def generate_prior_by_feature_map_id(fm_id):
 	prior_boxes = []
 	fm_size = fm_sizes[fm_id]
 	scale = scales[fm_id]
@@ -28,3 +28,14 @@ def generate_prior(fm_id):
 				prior_boxes.append([cx, cy, additional_scale, additional_scale])
 	prior_boxes = np.clip(prior_boxes, 0, 1)
 	return prior_boxes
+
+def generate_prior():
+	prior_boxes = []
+	for fm_id in range(len(fm_sizes)):
+		prior_boxes_per_fm = generate_prior_by_feature_map_id(fm_id)
+		prior_boxes.append(prior_boxes_per_fm)
+	prior_boxes = np.concatenate(prior_boxes, axis=0)
+
+	return prior_boxes
+
+generate_prior()
