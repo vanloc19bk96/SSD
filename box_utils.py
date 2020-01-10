@@ -10,17 +10,18 @@ def compute_iou(gt_boxes, prior_boxes):
 
     gt_xmin, gt_ymin, gt_xmax, gt_ymax = gt_boxes[..., 0], gt_boxes[..., 1], gt_boxes[..., 2], gt_boxes[..., 3]
     pri_xmin, pri_ymin, pri_xmax, pri_ymax = prior_boxes[..., 0], prior_boxes[..., 1], prior_boxes[..., 2], prior_boxes[..., 3]
-    y0 = np.maximum(gt_ymin, pri_ymin)
-    y1 = np.minimum(gt_ymax, pri_ymax)
-    x0 = np.maximum(gt_xmin, pri_xmin)
-    x1 = np.minimum(gt_xmax, pri_xmax)
+    y0 = tf.maximum(gt_ymin, pri_ymin)
+    y1 = tf.minimum(gt_ymax, pri_ymax)
+    x0 = tf.maximum(gt_xmin, pri_xmin)
+    x1 = tf.minimum(gt_xmax, pri_xmax)
     intersection = (x1 - x0) * (y1 - y0)
     gt_area = (gt_xmax - gt_xmin) * (gt_ymax - gt_ymin)
     pri_area = (pri_xmax - pri_xmin) * (pri_ymax - pri_ymin)
     union = gt_area + pri_area - intersection
     iou = intersection / union
-
-    return iou
+    iou = np.array(iou)
+    iou[iou < 0] = 0
+    return tf.convert_to_tensor(iou)
 
 def convert_center_to_corner(boxes):
     xmin = tf.cast(boxes[..., 0], dtype=tf.float64) - boxes[..., 2] / 2
@@ -28,7 +29,7 @@ def convert_center_to_corner(boxes):
     ymin = tf.cast(boxes[..., 1], dtype=tf.float64) - boxes[..., 3] / 2
     ymax  = tf.cast(boxes[..., 1], dtype=tf.float64) + boxes[..., 3] / 2
     corner_boxes = tf.transpose([xmin, ymin, xmax, ymax])
-    return corner_boxes
+    return tf.cast(corner_boxes, tf.int32)
 
 # import cv2
 #
