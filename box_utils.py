@@ -24,21 +24,28 @@ def compute_iou(gt_boxes, prior_boxes):
     return tf.convert_to_tensor(iou)
 
 def convert_center_to_corner(boxes):
-    xmin = tf.cast(boxes[..., 0], dtype=tf.float64) - boxes[..., 2] / 2
-    xmax = tf.cast(boxes[..., 0], dtype=tf.float64) + boxes[..., 2] / 2
-    ymin = tf.cast(boxes[..., 1], dtype=tf.float64) - boxes[..., 3] / 2
-    ymax  = tf.cast(boxes[..., 1], dtype=tf.float64) + boxes[..., 3] / 2
+    xmin = boxes[..., 0] - boxes[..., 2] / 2
+    xmax = boxes[..., 0] + boxes[..., 2] / 2
+    ymin = boxes[..., 1] - boxes[..., 3] / 2
+    ymax  = boxes[..., 1] + boxes[..., 3] / 2
     corner_boxes = tf.transpose([xmin, ymin, xmax, ymax])
-    return tf.cast(corner_boxes, tf.int32)
+    return tf.cast(corner_boxes, tf.float32)
 
-# import cv2
-#
-# zeros = np.zeros((300, 300))
-# gt_boxes = tf.constant([[1, 2, 90, 250], [1, 2, 4, 9]])
-# cv2.rectangle(zeros, (gt_boxes[0][0], gt_boxes[0][1]), (gt_boxes[0][2], gt_boxes[0][3]), (255, 255, 255), 2)
-# prior_boxes = np.array([[1, 2, 60, 100], [3, 4, 5, 6], [6, 7, 8, 9], [9, 10, 11, 12]])
-#
-# cv2.rectangle(zeros, (prior_boxes[0][0], prior_boxes[0][1]), (prior_boxes[0][2], prior_boxes[0][3]), (255, 137, 226), 2)
-# cv2.imshow("image", zeros)
-# cv2.waitKey(0)
-# print(compute_iou(gt_boxes, prior_boxes))
+def convert_corner_to_center(boxes):
+    cx = boxes[..., 0] + (boxes[..., 2] - boxes[..., 0]) / 2
+    cy = boxes[..., 1] + (boxes[..., 3] - boxes[..., 1]) / 2
+    w = boxes[..., 2] - boxes[..., 0]
+    h = boxes[..., 3] - boxes[..., 1]
+    center_boxes = tf.transpose([cx, cy, w, h])
+    return tf.cast(center_boxes, tf.float32)
+
+def encode(gt_boxes, prior_boxes, variance):
+    gt_boxes = tf.cast(gt_boxes, tf.float32)
+    prior_boxes = tf.cast(prior_boxes, tf.float32)
+    variance = tf.cast(variance, tf.float32)
+    gx = (gt_boxes[..., 0] - prior_boxes[..., 0]) / (prior_boxes[..., 2] * variance[0])
+    gy = (gt_boxes[..., 1] - prior_boxes[..., 1]) / (prior_boxes[..., 3] * variance[0])
+    gw = tf.math.log(gt_boxes[..., 2] / prior_boxes[..., 2]) / variance[1]
+    gh = tf.math.log(gt_boxes[..., 3] / prior_boxes[..., 3]) / variance[1]
+    encoded_boxes = tf.transpose([gx, gy, gw, gh])
+    return encoded_boxes

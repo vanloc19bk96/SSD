@@ -38,4 +38,4 @@ def generate_prior():
 
 	return prior_boxes
 
-generate_prior()
+# generate_prior()
