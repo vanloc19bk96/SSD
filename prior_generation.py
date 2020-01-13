@@ -37,5 +37,3 @@ def generate_prior():
 	prior_boxes = np.concatenate(prior_boxes, axis=0)
 
 	return prior_boxes
-
-# generate_prior()

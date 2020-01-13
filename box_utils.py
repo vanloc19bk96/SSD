@@ -4,7 +4,7 @@ import numpy as np
 
 def compute_iou(gt_boxes, prior_boxes):
     num_gt_boxes = len(gt_boxes)
-    gt_boxes = repeat(gt_boxes, len(prior_boxes))
+    gt_boxes = repeat(tf.convert_to_tensor(gt_boxes, dtype=tf.float32), len(prior_boxes))
     prior_boxes = np.expand_dims(prior_boxes, 0)
     prior_boxes = tf.tile(prior_boxes, multiples=[num_gt_boxes, 1, 1])
 
