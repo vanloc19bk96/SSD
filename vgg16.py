@@ -1,5 +1,5 @@
 from tensorflow.keras.layers import Input, Conv2D, MaxPool2D
-from tensorflow.keras.models import Model
+
 
 def vgg_block(input_x, repetition, filters, final):
     x = input_x
