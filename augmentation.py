@@ -1,9 +1,12 @@
 import imgaug as ia
 from imgaug import augmenters as iaa
+import numpy as np
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+import tensorflow as tf
 
 def create_seq(image, bbs, labels):
     seq = iaa.Sequential([
+        iaa.Resize({"height": 300, "width": 300}),
         iaa.Fliplr(0.5),
         iaa.Flipud(0.2),
         iaa.Sometimes(0.5,
@@ -19,21 +22,22 @@ def create_seq(image, bbs, labels):
             mode=ia.ALL
         )
     ])
-    image_aug, bbs_aug = seq(image, bbs)
+    image = np.array(image)
+    image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
     return image_aug, bbs_aug, labels
 
 def augment_gt_boxes(image, gt_boxes):
     bounding_boxes = []
     for gt_box in gt_boxes:
         bounding_boxes.append(BoundingBox(x1=gt_box[0], y1=gt_box[1], x2=gt_box[2], y2=gt_box[3]))
-    bbs = BoundingBoxesOnImage(bounding_boxes, shape=image.shape)
+    bbs = BoundingBoxesOnImage(bounding_boxes, shape=tuple(image.shape))
     return bbs
 
 def augment(image, gt_boxes, labels):
     bbs = augment_gt_boxes(image, gt_boxes)
     seq = create_seq(image, bbs, labels)
     image_aug, bbs_aug, labels = seq
-    return image_aug, format_gt_boxes(bbs_aug), labels
+    return tf.convert_to_tensor(image_aug, dtype=tf.float32), tf.convert_to_tensor(format_gt_boxes(bbs_aug), dtype=tf.float32), tf.convert_to_tensor(labels, dtype=tf.float32)
 
 def format_gt_boxes(bbs_aug):
     bounding_boxes = []
